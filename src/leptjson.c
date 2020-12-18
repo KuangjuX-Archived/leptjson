@@ -23,7 +23,7 @@ static int lept_parse_null(lept_context* c, lept_value* v) {
         return LEPT_PARSE_INVALID_VALUE;
     c->json += 3;
     v->type = LEPT_NULL;
-    return lept_judge_singular(c, v);
+    return LEPT_PARSE_OK;
 }
 
 static int lept_parse_true(lept_context* c, lept_value* v){
@@ -32,7 +32,7 @@ static int lept_parse_true(lept_context* c, lept_value* v){
         return LEPT_PARSE_INVALID_VALUE;
     c->json += 3;
     v->type = LEPT_TRUE;
-    return lept_judge_singular(c, v);
+    return LEPT_PARSE_OK;
 }
 
 static int lept_parse_false(lept_context* c, lept_value* v){
@@ -41,7 +41,7 @@ static int lept_parse_false(lept_context* c, lept_value* v){
         return LEPT_PARSE_INVALID_VALUE;
     c->json += 4;
     v->type = LEPT_FALSE;
-    return lept_judge_singular(c, v);
+    return LEPT_PARSE_OK;
 }
 
 static int lept_judge_singular(lept_context* c, lept_value* v){
@@ -70,7 +70,12 @@ int lept_parse(lept_value* v, const char* json) {
     c.json = json;
     v->type = LEPT_NULL;
     lept_parse_whitespace(&c);
-    return lept_parse_value(&c, v);
+    int res = lept_parse_value(&c, v);
+    if(res == LEPT_PARSE_OK){
+        return lept_judge_singular(&c, v);
+    }
+
+    return res;
 }
 
 lept_type lept_get_type(const lept_value* v) {
