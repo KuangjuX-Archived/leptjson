@@ -1,0 +1,7 @@
+*
+*/
+!leptjson.c
+!leptjson.h
+!test.c
+!CMakeLists.txt
+!.gitignore
