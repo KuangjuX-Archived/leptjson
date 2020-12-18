@@ -8,6 +8,8 @@ typedef struct {
     const char* json;
 }lept_context;
 
+static int lept_judge_singular(lept_context* c, lept_value* v);
+
 static void lept_parse_whitespace(lept_context* c) {
     const char *p = c->json;
     while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')
@@ -21,7 +23,7 @@ static int lept_parse_null(lept_context* c, lept_value* v) {
         return LEPT_PARSE_INVALID_VALUE;
     c->json += 3;
     v->type = LEPT_NULL;
-    return LEPT_PARSE_OK;
+    return lept_judge_singular(c, v);
 }
 
 static int lept_parse_true(lept_context* c, lept_value* v){
@@ -30,17 +32,27 @@ static int lept_parse_true(lept_context* c, lept_value* v){
         return LEPT_PARSE_INVALID_VALUE;
     c->json += 3;
     v->type = LEPT_TRUE;
-    return LEPT_PARSE_OK;
+    return lept_judge_singular(c, v);
 }
 
 static int lept_parse_false(lept_context* c, lept_value* v){
     EXPECT(c, 'f');
-    if(c->json[0] != 'a' || c->json[1] != 'l' || c->json[2] != 's' || c->json[3] != 'e')
+    if(*(c->json) != 'a' || c->json[1] != 'l' || c->json[2] != 's' || c->json[3] != 'e')
         return LEPT_PARSE_INVALID_VALUE;
     c->json += 4;
     v->type = LEPT_FALSE;
+    return lept_judge_singular(c, v);
+}
+
+static int lept_judge_singular(lept_context* c, lept_value* v){
+    lept_parse_whitespace(c);
+    if(*(c->json) != '\0'){
+        v->type = LEPT_NULL;
+        return LEPT_PARSE_ROOT_NOT_SINGULAR;
+    }
     return LEPT_PARSE_OK;
 }
+
 
 static int lept_parse_value(lept_context* c, lept_value* v) {
     switch (*c->json) {
