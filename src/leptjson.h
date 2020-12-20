@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 
+typedef enum{ FALSE, TRUE }boolen;
 typedef enum { LEPT_NULL, LEPT_FALSE, LEPT_TRUE, LEPT_NUMBER, LEPT_STRING, LEPT_ARRAY, LEPT_OBJECT } lept_type;
 
 typedef struct {
