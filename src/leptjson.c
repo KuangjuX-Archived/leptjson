@@ -25,7 +25,6 @@ typedef struct {
     size_t size, top;
 }lept_context;
 
-static int lept_judge_singular(lept_context* c, lept_value* v);
 
 static void* lept_context_push(lept_context* c, size_t size) {
     void* ret;
@@ -121,20 +120,47 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                 return LEPT_PARSE_OK;
             case '\0':
                 c->top = head;
-                return LEPT_PARSE_MISS_QUOTATION_MARK;
+                return LEPT_PARSE_MISS_QUOTATION_MARK;  
+            case '\\':
+                ch = *p++;
+               
+                if(ch == 'n'){
+                    PUTC(c, '\n');
+                    break;
+                }
+                else if(ch == 't'){
+                    PUTC(c, '\t');
+                    break;
+                }
+                else if(ch == 'f'){
+                    PUTC(c, '\f');
+                    break;
+                }
+                else if(ch == 'r'){
+                    PUTC(c, '\r');
+                    break;
+                }
+                else if(ch == 'b'){
+                    PUTC(c, '\b');
+                    break;
+                }
+                else if(ch == '/'){
+                    PUTC(c, '/');
+                    break;
+                }
+                else if(ch == '\\'){
+                    PUTC(c, '\\');
+                    break;
+                }
+                else{
+                    ch = *p--;
+                }
+            
+                
             default:
                 PUTC(c, ch);
         }
     }
-}
-
-static int lept_judge_singular(lept_context* c, lept_value* v){
-    lept_parse_whitespace(c);
-    if(*(c->json) != '\0'){
-        v->type = LEPT_NULL;
-        return LEPT_PARSE_ROOT_NOT_SINGULAR;
-    }
-    return LEPT_PARSE_OK;
 }
 
 
