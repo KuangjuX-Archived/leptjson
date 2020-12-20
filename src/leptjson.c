@@ -57,7 +57,7 @@ static void lept_parse_whitespace(lept_context* c) {
 static int lept_parse_literal(lept_context* c, lept_value* v , char* s, short len, int type){
     int i = 0;
     EXPECT(c, s[0]);
-    for(i; i < len-1; i++){
+    for(; i < len-1; i++){
         if(c->json[i] != s[i+1])
             return LEPT_PARSE_INVALID_VALUE;
     }
@@ -68,14 +68,14 @@ static int lept_parse_literal(lept_context* c, lept_value* v , char* s, short le
 
 static int lept_parse_number(lept_context* c, lept_value* v) {
     char* end;
+    const char* s = c->json;
     /* \TODO validate number */
-    v->n = strtod(c->json, &end);
+    v->u.n = strtod(c->json, &end);
 
     if (c->json == end)
         return LEPT_PARSE_INVALID_VALUE;
   
 
-    const char* s = c->json;
     char ch = s[0];
 
     /*judge the first char*/
@@ -96,7 +96,7 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
         return LEPT_PARSE_INVALID_VALUE;
 
     /*judge the range of the number*/
-    if(isinf(v->n))
+    if(isinf(v->u.n))
         return LEPT_PARSE_NUMBER_TOO_BIG;
             
 
@@ -181,12 +181,6 @@ lept_type lept_get_type(const lept_value* v) {
     assert(v != NULL);
     return v->type;
 }
-
-double lept_get_number(const lept_value* v) {
-    assert(v != NULL && v->type == LEPT_NUMBER);
-    return v->u.n;
-}
-
 
 int lept_get_boolean(const lept_value* v) {
     /* \TODO */
