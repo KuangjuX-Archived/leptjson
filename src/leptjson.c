@@ -157,8 +157,9 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                     break;
                 }
                 else{
-                    ch = *p--;
+                    /*ch = *p--;*/
                     /*printf("%c \n", ch);*/
+                    return LEPT_PARSE_INVALID_STRING_ESCAPE;
                 }
             
                 
