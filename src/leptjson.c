@@ -161,9 +161,14 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                     /*printf("%c \n", ch);*/
                     return LEPT_PARSE_INVALID_STRING_ESCAPE;
                 }
+
+
             
                 
             default:
+                if((ch >= '\x01' && ch <= '\x1F') || (ch == '\x22') || (ch == '\x5C'))
+                    return LEPT_PARSE_INVALID_STRING_CHAR;
+
                 PUTC(c, ch);
         }
     }
