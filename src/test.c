@@ -182,7 +182,7 @@ static void test_parse_invalid_string_char() {
 
     TEST_ERROR(LEPT_PARSE_INVALID_STRING_CHAR, "\"\x01\"");
     TEST_ERROR(LEPT_PARSE_INVALID_STRING_CHAR, "\"\x1F\"");
-    
+
 }
 
 static void test_access_null() {
@@ -197,6 +197,13 @@ static void test_access_null() {
 static void test_access_boolean() {
     /* \TODO */
     /* Use EXPECT_TRUE() and EXPECT_FALSE() */
+    lept_value v;
+    lept_init(&v);
+    lept_set_boolean(&v, TRUE);
+    EXPECT_TRUE(lept_get_boolean(&v));
+    lept_set_boolean(&v, FALSE);
+    EXPECT_FALSE(lept_get_boolean(&v));
+    lept_free(&v);
 }
 
 static void test_access_number() {
