@@ -152,8 +152,13 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                     PUTC(c, '\\');
                     break;
                 }
+                else if(ch == '"'){
+                    PUTC(c, '"');
+                    break;
+                }
                 else{
                     ch = *p--;
+                    /*printf("%c \n", ch);*/
                 }
             
                 
