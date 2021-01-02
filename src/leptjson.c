@@ -111,6 +111,7 @@ static const char* charcpy(const char* p, char* target){
         if(!flag)return NULL;
         p++;
     }
+    target[len] = '\0';
     return p;
 }
 
@@ -125,6 +126,19 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
         p++;
         p = charcpy(p, low);
         if(!p)return NULL;
+    }
+
+
+    if(!low){
+        unsigned temp = (unsigned)strtod(high, NULL);
+        if(temp >=0 && temp <= 0x007f){
+            *u = temp;
+        }else if(temp >= 0x0080 && temp <= 0x7ff){
+            *u = ((temp & 0x003f) | 0x0080);
+            *u = (((((temp & 0x07a0) >> 6) | 0x00a0) << 8) | *u);
+        }else if(temp >= 0x0800 && temp <= 0xffff){
+
+        }
     }
 
     return p;
