@@ -103,10 +103,30 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
     v->type = LEPT_NUMBER;
     return LEPT_PARSE_OK;
 }
-
+static const char* charcpy(const char* p, char* target){
+    int len;
+    for(len = 0; len < 4; len++){
+        target[len] = *p;
+        int flag = ((*target)>='0' && (*target)<='9') || ((*target)>='A' && (*target)<='F');
+        if(!flag)return NULL;
+        p++;
+    }
+    return p;
+}
 
 static const char* lept_parse_hex4(const char* p, unsigned* u) {
     /* \TODO */
+    int len;
+    char *high = NULL, *low = NULL;
+    p = charcpy(p, high);
+    if(!p)return NULL;
+
+    if(*p == '\\'){
+        p++;
+        p = charcpy(p, low);
+        if(!p)return NULL;
+    }
+
     return p;
 }
 
