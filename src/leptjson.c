@@ -4,6 +4,7 @@
 #include <stdio.h>   /* debug */
 #include <math.h>   /* judge inf */
 #include <string.h>
+#include <malloc.h>
 
 #ifndef LEPT_PARSE_STACK_INIT_SIZE
 #define LEPT_PARSE_STACK_INIT_SIZE 256
@@ -103,21 +104,42 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
     v->type = LEPT_NUMBER;
     return LEPT_PARSE_OK;
 }
+
 static const char* charcpy(const char* p, char* target){
+    target = (char *)malloc(5 * sizeof(char));
     int len;
     for(len = 0; len < 4; len++){
         target[len] = *p;
-        int flag = ((*target)>='0' && (*target)<='9') || ((*target)>='A' && (*target)<='F');
+        printf("test\n");
+        int flag = ((*target)>='0' && (*target)<='9') || ((*target)>='A' && (*target)<='F') || ((*target) >= 'a' && (*target) <= 'f');
+        
         if(!flag)return NULL;
         p++;
     }
     target[len] = '\0';
+    printf("test2\n");
     return p;
+}
+
+static unsigned str2hex(const char* str, int len){
+    unsigned res;
+    int i;
+    for(i = 0; i < len; i++){
+        char ch = str[i];
+        if(ch >= '0' && ch <= '9'){
+            res = (res | (((unsigned)(ch - '0')) << (4 * (len-i-1))));
+        }else if(ch >= 'a' && ch <= 'f'){
+            res = (res | (((unsigned)(ch - 'a')) << (4 * (len-i-1))));
+        }else if(ch >= 'A' && ch <= 'F'){
+            res = (res | (((unsigned)(ch - 'A')) << (4 * (len-i-1))));
+        }
+    }
+    return res;
 }
 
 static const char* lept_parse_hex4(const char* p, unsigned* u) {
     /* \TODO */
-    int len;
+    printf("123\n");
     char *high = NULL, *low = NULL;
     p = charcpy(p, high);
     if(!p)return NULL;
@@ -130,16 +152,19 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
 
 
     if(!low){
-        unsigned temp = (unsigned)strtod(high, NULL);
+        unsigned temp = str2hex(low, 4);
         if(temp >=0 && temp <= 0x007f){
             *u = temp;
         }else if(temp >= 0x0080 && temp <= 0x7ff){
             *u = ((temp & 0x003f) | 0x0080);
-            *u = (((((temp & 0x07a0) >> 6) | 0x00a0) << 8) | *u);
+            *u = ((((temp & 0x07a0) | 0x3000) << 2) | *u);
         }else if(temp >= 0x0800 && temp <= 0xffff){
-
+            *u = ((temp & 0x003f) | 0x0080);
+            *u = ((((temp & 0x07a0) | 0x3000) << 2) | *u);
+            *u = ((((temp & 0xf000) | 0xe0000) << 4) | *u);
         }
     }
+    printf("num: 0x%x\n",*u);
 
     return p;
 }
