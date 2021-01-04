@@ -105,22 +105,18 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
     return LEPT_PARSE_OK;
 }
 
-static const char* charcpy(const char* p, char* target){
-    target = (char *)malloc(5 * sizeof(char));
+static const char* charcpy(const char* p, char** target){
+    *target = (char *)malloc(5 * sizeof(char));
     int len;
-    printf("target: ");
     for(len = 0; len < 4; len++){
-        printf("%c",*p);
-        target[len] = *p;
-        int flag = ((*target)>='0' && (*target)<='9') || ((*target)>='A' && (*target)<='F') || ((*target) >= 'a' && (*target) <= 'f');
-        
+        int flag = ((*p)>='0' && (*p)<='9') || ((*p)>='A' && (*p)<='F') || ((*p) >= 'a' && (*p) <= 'f');
         if(!flag)return NULL;
+        (*target)[len] = *p;
         p++;
     }
-    printf("\n");
-    target[len] = '\0';
+    (*target)[len] = '\0';
     for(len = 0; len < 4; len++){
-        printf("%c",target[len]);
+        printf("%c",(*target)[len]);
     }
     printf("\n");
     return p;
@@ -145,19 +141,17 @@ static unsigned str2hex(const char* str, int len){
 static const char* lept_parse_hex4(const char* p, unsigned* u) {
     /* \TODO */
     char *high = NULL, *low = NULL;
-    p = charcpy(p, high);
+    p = charcpy(p, &high);
     if(!p)return NULL;
     if(*p == '\\'){
         p++;
-        p = charcpy(p, low);
+        p = charcpy(p, &low);
         if(!p)return NULL;
     }
 
 
     if(!low){
-        printf("high: %c \n", high[0]);
         unsigned temp = str2hex(high, 4);
-        printf("test\n");
         if(temp >=0 && temp <= 0x007f){
             *u = temp;
         }else if(temp >= 0x0080 && temp <= 0x7ff){
