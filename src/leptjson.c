@@ -115,6 +115,7 @@ static const char* charcpy(const char* p, char** target){
         p++;
     }
     (*target)[len] = '\0';
+
     for(len = 0; len < 4; len++){
         printf("%c",(*target)[len]);
     }
@@ -123,7 +124,7 @@ static const char* charcpy(const char* p, char** target){
 }
 
 static unsigned str2hex(const char* str, int len){
-    unsigned res;
+    unsigned res = 0;
     int i;
     for(i = 0; i < len; i++){
         char ch = str[i];
@@ -142,6 +143,12 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
     /* \TODO */
     char *high = NULL, *low = NULL;
     p = charcpy(p, &high);
+    /*debug*/
+    printf("high: ");
+    int i;
+    for(i=0; i<4; i++)printf("%c",high[i]);
+    printf("\n");
+
     if(!p)return NULL;
     if(*p == '\\'){
         p++;
@@ -152,6 +159,7 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
 
     if(!low){
         unsigned temp = str2hex(high, 4);
+        printf("temp: %d\n",temp);
         if(temp >=0 && temp <= 0x007f){
             *u = temp;
         }else if(temp >= 0x0080 && temp <= 0x7ff){
@@ -162,7 +170,22 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
             *u = ((((temp & 0x07a0) | 0x3000) << 2) | *u);
             *u = ((((temp & 0xf000) | 0xe0000) << 4) | *u);
         }
+    }else{
+        unsigned high_num = str2hex(high, 4);
+        unsigned low_num = str2hex(low, 4);
+        if(high_num >= 0xD800 && high_num <= 0xDBFF && low_num >= 0xDC00 && low_num <= 0xDFFF){
+            unsigned codepoint = 0x10000 + (high_num - 0xD800)*0x400 +(low_num - 0xDC00);
+            *u = ((codepoint & 0x003f) | 0x0080);
+            *u = ((((codepoint & 0x07a0) | 0x3000) << 2) | *u);
+            *u = ((((codepoint & 0xf000) | 0xe0000) << 4) | *u);
+            *u = ((((codepoint & 0x1a0000) | 0x3a00000) << 6) | *u);
+        }else{
+            return NULL;
+        }
+        
     }
+
+
     printf("num: 0x%x\n",*u);
 
     return p;
@@ -170,6 +193,14 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
 
 static void lept_encode_utf8(lept_context* c, unsigned u) {
     /* \TODO */
+    char* res = (char*)malloc(100*sizeof(char));
+    printf("test: \xF0\x9D\x84\x9E\n");
+    /*sprintf(res, "%x", u);*/
+    while(*res != '\0'){
+        char ch = *res;
+        PUTC(c, ch);
+        res++;
+    }
 }
 
 #define STRING_ERROR(ret) do { c->top = head; return ret; } while(0)
