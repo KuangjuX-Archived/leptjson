@@ -105,60 +105,42 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
     return LEPT_PARSE_OK;
 }
 
-static const char* charcpy(const char* p, char** target){
-    *target = (char *)malloc(5 * sizeof(char));
-    int len;
-    for(len = 0; len < 4; len++){
-        int flag = ((*p)>='0' && (*p)<='9') || ((*p)>='A' && (*p)<='F') || ((*p) >= 'a' && (*p) <= 'f');
-        if(!flag)return NULL;
-        (*target)[len] = *p;
-        p++;
-    }
-    (*target)[len] = '\0';
-
-    for(len = 0; len < 4; len++){
-        printf("%c",(*target)[len]);
-    }
-    printf("\n");
-    return p;
-}
-
-static unsigned str2hex(const char* str, int len){
-    unsigned res = 0;
-    int i;
-    for(i = 0; i < len; i++){
-        char ch = str[i];
-        if(ch >= '0' && ch <= '9'){
-            res = (res | (((unsigned)(ch - '0')) << (4 * (len-i-1))));
-        }else if(ch >= 'a' && ch <= 'f'){
-            res = (res | (((unsigned)(ch - 'a')) << (4 * (len-i-1))));
-        }else if(ch >= 'A' && ch <= 'F'){
-            res = (res | (((unsigned)(ch - 'A')) << (4 * (len-i-1))));
-        }
-    }
-    return res;
-}
 
 static const char* lept_parse_hex4(const char* p, unsigned* u) {
     /* \TODO */
-    char *target;
-    p = charcpy(p, &target);
-    if(!p)return NULL;
-    *u = str2hex(target, 4);
+    *u = 0;
+    int i;
+    for(i = 3; i >= 0; i--){
+        if((*p) >= '0' && (*p) <= '9'){
+            *u += ((unsigned)((*p) - '0') >> (4 * i));
+        }else if((*p) >= 'A' && (*p) <= 'F'){
+            *u += (((unsigned)((*p) - 'A') + 10) >> (4 * i));
+        }else if((*p) >= 'a' && (*p) <= 'f'){
+            *u += (((unsigned)((*p) - 'a') + 10) >> (4 * i));
+        }else{
+            *u = 0;
+            p = NULL;
+            return p;
+        }
 
+        p++;
+    }
+
+    printf("%X\n", *u);
+    
     return p;
 }
 
 static void lept_encode_utf8(lept_context* c, unsigned u) {
     /* \TODO */
     if(u >= 0 && u <= 0x007F){
-        PUTC(c,u);
+        PUTC(c, u & 0xFF);
     }else if(u >= 0x0080 && u <= 0x07FF){
-        PUTC(c, (0xC0 || (u >> 6) & 0x1F));
-        PUTC(c, (0x80 || u & 0x3F));
+        PUTC(c, (0xC0 | ((u >> 6) & 0xFF)));
+        PUTC(c, (0x80 | (u & 0x3F)));
     }else if(u >= 0x0800 && u <= 0xFFFF){
-        PUTC(c, (0xE0 || ((u >> 12) && 0xFF)));
-        PUTC(c, (0x80 || ((u >> 6) & 0x3F)));
+        PUTC(c, (0xE0 | ((u >> 12) & 0xFF)));
+        PUTC(c, (0x80 | ((u >> 6) & 0x3F)));
         PUTC(c, (0x80 | (u & 0x3F)));
     }
     
