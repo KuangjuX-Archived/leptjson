@@ -112,11 +112,11 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
     int i;
     for(i = 3; i >= 0; i--){
         if((*p) >= '0' && (*p) <= '9'){
-            *u += ((unsigned)((*p) - '0') >> (4 * i));
+            *u += ((unsigned)((*p) - '0') << (4 * i));
         }else if((*p) >= 'A' && (*p) <= 'F'){
-            *u += (((unsigned)((*p) - 'A') + 10) >> (4 * i));
+            *u += (((unsigned)((*p) - 'A') + 10) << (4 * i));
         }else if((*p) >= 'a' && (*p) <= 'f'){
-            *u += (((unsigned)((*p) - 'a') + 10) >> (4 * i));
+            *u += (((unsigned)((*p) - 'a') + 10) << (4 * i));
         }else{
             *u = 0;
             p = NULL;
