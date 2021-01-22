@@ -106,7 +106,7 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
 }
 
 
-static const char* lept_parse_hex4(const char* p, unsigned* u) {
+static const char* lept_parse_hex4(const char* p, unsigned* u, int *flag) {
     /* \TODO */
     unsigned low = 0;
     *u = 0;
@@ -127,9 +127,9 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
         p++;
     }
 
-    if(*p == '\\' && *(p + 1) == 'u'){
-        p = p + 2;
-        if(*u >= 0xD800 && *u <= 0xDBFF){
+    if(*u >= 0xD800 && *u <= 0xDBFF){
+        if(*p == '\\' && *(p + 1) == 'u'){
+            p = p + 2;
             for(i = 3; i >= 0; i--){
                 if((*p) >= '0' && (*p) <= '9'){
                     low += ((unsigned)((*p) - '0') << (4 * i));
@@ -147,8 +147,13 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
 
             if(low >= 0xDC00 && low <= 0xDFFF){
                 *u = 0x10000 + (*u - 0xD800) * 0x400 + (low - 0xDC00);
+            }else{
+                *flag = 1;
             }
+        }else {
+            *flag = 1;
         }
+        
         
     }
     
@@ -183,6 +188,8 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
     size_t head = c->top, len;
     unsigned u;
     const char* p;
+    int surrogate_flag = 0; 
+
     EXPECT(c, '\"');
     p = c->json;
     for (;;) {
@@ -231,9 +238,11 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                     break;
                 }
                 else if(ch == 'u'){
-                    if (!(p = lept_parse_hex4(p, &u)))
+                    if (!(p = lept_parse_hex4(p, &u, &surrogate_flag)))
                             STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX);
                         /* \TODO surrogate handling */
+                        if(surrogate_flag == 1)
+                            STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE);
                         lept_encode_utf8(c, u);
                         break;
                 }
