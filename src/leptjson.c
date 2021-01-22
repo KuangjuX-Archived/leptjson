@@ -108,6 +108,7 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
 
 static const char* lept_parse_hex4(const char* p, unsigned* u) {
     /* \TODO */
+    unsigned low = 0;
     *u = 0;
     int i;
     for(i = 3; i >= 0; i--){
@@ -126,7 +127,30 @@ static const char* lept_parse_hex4(const char* p, unsigned* u) {
         p++;
     }
 
-    printf("%X\n", *u);
+    if(*p == '\\' && *(p + 1) == 'u'){
+        p = p + 2;
+        if(*u >= 0xD800 && *u <= 0xDBFF){
+            for(i = 3; i >= 0; i--){
+                if((*p) >= '0' && (*p) <= '9'){
+                    low += ((unsigned)((*p) - '0') << (4 * i));
+                }else if((*p) >= 'A' && (*p) <= 'F'){
+                    low += (((unsigned)((*p) - 'A') + 10) << (4 * i));
+                }else if((*p) >= 'a' && (*p) <= 'f'){
+                    low += (((unsigned)((*p) - 'a') + 10) << (4 * i));
+                }else{
+                    *u = 0;
+                    p = NULL;
+                    return p;
+                }
+                p++;
+            }
+
+            if(low >= 0xDC00 && low <= 0xDFFF){
+                *u = 0x10000 + (*u - 0xD800) * 0x400 + (low - 0xDC00);
+            }
+        }
+        
+    }
     
     return p;
 }
@@ -142,7 +166,13 @@ static void lept_encode_utf8(lept_context* c, unsigned u) {
         PUTC(c, (0xE0 | ((u >> 12) & 0xFF)));
         PUTC(c, (0x80 | ((u >> 6) & 0x3F)));
         PUTC(c, (0x80 | (u & 0x3F)));
+    }else if(u >= 0x10000 && u <= 0x10FFFF){
+        PUTC(c, (0xF0 | ((u >> 18) & 0xFF)));
+        PUTC(c, (0x80 | ((u >> 12) & 0x3F)));
+        PUTC(c, (0x80 | ((u >> 6) & 0x3F)));
+        PUTC(c, (0x80 | (u  & 0x3F)));
     }
+    
     
 }
 
